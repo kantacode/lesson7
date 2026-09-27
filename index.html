@@ -6,31 +6,42 @@
   <style>
     body {
       font-family: sans-serif;
-      background: #f0f2f5;
+      background: #1a1a2e;
       display: flex;
       justify-content: center;
+      align-items: center;
+      min-height: 100vh;
       padding: 40px 16px;
     }
 
     .page {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: center;
       gap: 24px;
       max-width: 720px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
     }
 
     /* カード共通スタイル。計算機・練習課題・履歴をそれぞれ1枚のカードにまとめる */
     .card {
       background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      padding: 28px;
       text-align: center;
     }
 
     h1 {
-      font-size: 20px;
-      margin: 0 0 16px;
+      font-size: 22px;
+      margin: 0 0 20px;
+      color: #1a1a2e;
     }
 
     h2 {
@@ -40,49 +51,111 @@
     }
 
     input[type="number"] {
-      width: 80px;
-      padding: 8px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      width: 90px;
+      padding: 10px;
+      margin: 0 4px;
+      font-size: 18px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
       text-align: center;
     }
 
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #4a6cf7;
+    }
+
     button {
-      padding: 8px 14px;
-      margin: 0 4px;
-      font-size: 16px;
+      padding: 10px 18px;
+      margin: 4px;
+      font-size: 18px;
+      font-weight: bold;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       background: #4a6cf7;
       color: #fff;
       cursor: pointer;
+      transition: transform 0.1s, filter 0.15s;
     }
 
     button:hover {
-      background: #3955d1;
+      filter: brightness(0.9);
+      transform: translateY(-1px);
+    }
+
+    /* 演算子ボタンの色分け */
+    .op-plus {
+      background: #4a6cf7;
+    }
+
+    .op-minus {
+      background: #f74a4a;
+    }
+
+    .op-multiply {
+      background: #2ecc71;
+    }
+
+    .op-divide {
+      background: #ff9f2e;
+    }
+
+    #formula {
+      /* 計算式全体（例: 3 + 5 = 8）を表示する場所のスタイル */
+      margin-top: 20px;
+      font-size: 16px;
+      color: #888;
+      min-height: 20px;
+      word-break: break-all;
     }
 
     #result,
     #sumResult {
-      /* 式と結果を表示する場所のスタイル */
-      margin-top: 16px;
-      font-size: 24px;
+      /* 結果を表示する場所のスタイル */
+      margin-top: 8px;
+      font-size: 32px;
       font-weight: bold;
-      color: #222;
+      color: #1a1a2e;
       word-break: break-all;
     }
 
+    /* エラーメッセージは赤で表示する */
+    #result.error {
+      color: #f74a4a;
+    }
+
+    /* 結果が更新されたときのフェードインアニメーション */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+
     .history-card {
-      width: 240px;
-      max-height: 260px;
-      overflow-y: auto;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .btn-secondary {
+      background: #888;
+      font-weight: normal;
+      font-size: 14px;
+      padding: 8px 14px;
     }
 
     #history {
       list-style: none;
       padding: 0;
-      margin: 0;
+      margin: 16px 0 0;
       text-align: left;
       font-size: 14px;
     }
@@ -97,34 +170,44 @@
 
   <div class="page">
 
-    <div class="card">
-      <h1>計算機</h1>
+    <div class="row">
+      <div class="card">
+        <h1>計算機</h1>
 
-      <!-- 数値を入力する欄。type="number" で数字専用の入力欄になる -->
-      <input type="number" id="num1" value="0">
-      <input type="number" id="num2" value="0">
+        <!-- 数値を入力する欄。type="number" で数字専用の入力欄になる -->
+        <input type="number" id="num1" value="0">
+        <input type="number" id="num2" value="0">
 
-      <!-- 演算子ボタン。onclick で押したときに呼ぶ関数と引数を指定 -->
-      <div>
-        <button onclick="calculate('+')">+</button>
-        <button onclick="calculate('-')">-</button>
-        <button onclick="calculate('×')">×</button>
-        <button onclick="calculate('÷')">÷</button>
+        <!-- 演算子ボタン。onclick で押したときに呼ぶ関数と引数を指定 -->
+        <div>
+          <button class="op-plus" onclick="calculate('+')">+</button>
+          <button class="op-minus" onclick="calculate('-')">-</button>
+          <button class="op-multiply" onclick="calculate('×')">×</button>
+          <button class="op-divide" onclick="calculate('÷')">÷</button>
+        </div>
+
+        <!-- 計算式全体（例: 3 + 5 = 8）を表示する場所 -->
+        <p id="formula"></p>
+
+        <!-- 計算結果を表示する場所。id をつけてJSから操作できるようにする -->
+        <p id="result">ここに結果が表示されます</p>
+
+        <!-- 直前の結果をnum1にセットするボタン。最初の計算が終わるまでは隠しておく -->
+        <button id="useResultBtn" class="btn-secondary" style="display: none;" onclick="useLastResult()">前の結果を使う</button>
       </div>
 
-      <!-- 計算結果を表示する場所。id をつけてJSから操作できるようにする -->
-      <p id="result">ここに結果が表示されます</p>
+      <div class="card">
+        <h2>1からnまでの合計（練習課題）</h2>
+        <input type="number" id="sumN" value="10">
+        <button onclick="calculateSumTo()">計算</button>
+        <p id="sumResult">ここに結果が表示されます</p>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>1からnまでの合計（練習課題）</h2>
-      <input type="number" id="sumN" value="10">
-      <button onclick="calculateSumTo()">計算</button>
-      <p id="sumResult">ここに結果が表示されます</p>
-    </div>
-
+    <!-- カードの下に配置する計算履歴セクション -->
     <div class="card history-card">
       <h2>計算履歴</h2>
+      <button class="btn-secondary" onclick="clearHistory()">履歴をクリア</button>
       <ul id="history"></ul>
     </div>
 
@@ -132,8 +215,15 @@
 
   <script>
     // ── 状態を覚えておく変数 ────────────────────────────────────────
-    // lastOperator: 直前に押された演算子。Enterキーでの再計算に使う
-    let lastOperator = null;
+    // lastOperator: 直前に押された演算子。Enterキーでの計算に使う（最初は+を仮定）
+    let lastOperator = '+';
+    // lastResult: 直前の計算結果（エラーでないときだけ更新する）
+    let lastResult = null;
+
+    // roundTo3 = 小数点以下が長い数値を第3位で四捨五入する関数
+    function roundTo3(n) {
+      return Math.round(n * 1000) / 1000;
+    }
 
     // ── 関数 ──────────────────────────────────────────────────────
     // calculate = 計算を行う関数。押されたボタンの演算子が引数として渡される
@@ -166,18 +256,43 @@
         }
       }
 
-      // 計算結果を「式 = 結果」の形にして画面に表示する（DOM操作）
+      // 小数点以下が長い場合は第3位で四捨五入する
+      if (typeof result === 'number') {
+        result = roundTo3(result);
+      }
+
+      // 計算式全体を上の行に、結果を下の行に分けて表示する（DOM操作）
       const formula = `${a} ${operator} ${b} = ${result}`;
-      document.getElementById('result').textContent = formula;
+      document.getElementById('formula').textContent = formula;
+
+      const resultEl = document.getElementById('result');
+      resultEl.textContent = result;
+      // 数値でなければエラーなので赤字にする
+      resultEl.classList.toggle('error', typeof result !== 'number');
+      playFadeIn(resultEl);
+
       addHistory(formula);
 
-      // ── 連続計算 ──────────────────────────────────────────────
-      // エラーでなければ、結果を次の計算の1つ目の数として使えるようにする
+      // ── 前の結果を使うボタン ──────────────────────────────────
+      // エラーでなければ結果を覚えておき、ボタンを表示する
       if (typeof result === 'number') {
-        num1El.value = result;
-        num2El.value = 0;
-        num2El.focus();
+        lastResult = result;
+        document.getElementById('useResultBtn').style.display = 'inline-block';
       }
+    }
+
+    // useLastResult = 「前の結果を使う」ボタンを押したときに呼ばれる関数
+    function useLastResult() {
+      if (lastResult === null) return;
+      document.getElementById('num1').value = lastResult;
+      document.getElementById('num2').focus();
+    }
+
+    // playFadeIn = 要素に付けたfade-inアニメーションを毎回最初から再生する関数
+    function playFadeIn(el) {
+      el.classList.remove('fade-in');
+      void el.offsetWidth; // 一度描画を挟むことでアニメーションを再スタートさせる
+      el.classList.add('fade-in');
     }
 
     // sumTo = 1からnまでの整数を合計する関数（練習課題）
@@ -190,31 +305,53 @@
       return total;
     }
 
+    // 練習課題の確認用: コンソールに55が表示されればsumTo()は正しく動いている
+    console.log(sumTo(10));
+
     // calculateSumTo = sumTo()の結果を画面に表示する関数
     function calculateSumTo() {
       const n = Number(document.getElementById('sumN').value);
       const total = sumTo(n);
       const formula = `1から${n}までの合計 = ${total}`;
-      document.getElementById('sumResult').textContent = formula;
+      const sumResultEl = document.getElementById('sumResult');
+      sumResultEl.textContent = formula;
+      playFadeIn(sumResultEl);
       addHistory(formula);
     }
+
+    // 履歴として画面に残しておく件数
+    const HISTORY_LIMIT = 5;
 
     // addHistory = 計算履歴の一覧に新しい行を追加する関数
     function addHistory(text) {
       const historyList = document.getElementById('history');
       const li = document.createElement('li');
       li.textContent = text;
+      li.classList.add('fade-in'); // 追加された項目にフェードインをつける
       // 新しい履歴ほど上に表示されるように先頭に追加する
       historyList.insertBefore(li, historyList.firstChild);
+
+      // 最新5件だけ残し、古い履歴は取り除く
+      while (historyList.children.length > HISTORY_LIMIT) {
+        historyList.removeChild(historyList.lastChild);
+      }
+    }
+
+    // clearHistory = 履歴を全件削除する関数
+    function clearHistory() {
+      document.getElementById('history').innerHTML = '';
     }
 
     // ── イベントリスナー ──────────────────────────────────────────
-    // Enterキーが押されたとき、直前と同じ演算子で再計算する
-    document.getElementById('num2').addEventListener('keydown', function (event) {
-      if (event.key === 'Enter' && lastOperator) {
+    // Enterキーが押されたとき、直前と同じ演算子で計算する（num1・num2どちらでも可）
+    function handleEnterKey(event) {
+      if (event.key === 'Enter') {
         calculate(lastOperator);
       }
-    });
+    }
+
+    document.getElementById('num1').addEventListener('keydown', handleEnterKey);
+    document.getElementById('num2').addEventListener('keydown', handleEnterKey);
 
     document.getElementById('sumN').addEventListener('keydown', function (event) {
       if (event.key === 'Enter') {
